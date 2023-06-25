@@ -1,0 +1,332 @@
+* Aggregation is most powerful framework which MongoDB offers.
+* Documents during aggregation process pass through the stages.
+
+syntex: db.<collection>.aggregate([
+        <stage1>,
+        <stage2>,
+        <stage3>,
+    ])
+
+* Aggregation request return cursor from the server
+
+* Get all documents * 
+db.Person.aggregate([]);
+db.Person.find({});
+
+* Aggregation Stage *
+* Each stage take documents as an input then process and produce output documents.
+* Stages are independent
+* Each stage start with stage operator
+
+syntex: { $<StageOperator>: {}}
+ex: { $match: { age: { $gt: 20 }}}
+ex: { $group: { _id: "$age" }}
+ex: { $sort: {comments: -1}}
+
+* Aggregation Stages Overview *
+$match, $group, $project, $sort, $count, $limit, $skip, $output
+
+*Aggregation Expression *
+* Expression refers to the name of the feild in input documents
+"$<fieldName>"
+
+** Match Stage **
+* Match specific documents using query 
+* Match is usually comes as first stage in aggregation operation
+* Match stage is like find query it matche documents from inputs documents and matched documents out to next stage
+
+syntex: { $match: <query> }
+
+db.Person.aggregate([
+    {
+        $match: { city: 'New York' }
+    }
+]);
+
+ex: { $match: { age: {$gt: 25 }}}
+ex: { 
+        $match: { 
+            $and: [ 
+                    { gender: "male" },
+                    { isActive: true }
+            ]
+        }
+    }
+ex: { $match: { isActive: true, tags: { $size: 3}}} | $size operator is like length
+
+
+** Group Stage **
+* Groups input documents by certain Expression
+* Group fields which is unique
+syntex: { $group: { _id: <Expression>|<field> }, {<accumulator1: <expression1>}}
+
+ex: db.Person.aggregate([
+    {
+        $group: {
+            _id: "$age",
+        }
+    }
+]);
+
+** Group by Multiple field **
+ex: db.Person.aggregate([
+    {
+        $group: {
+            _id: {
+                age: "$age",
+                gender: "$gender",
+            }
+        }
+    }
+])
+
+* _id is mandatory field that must be present in each group stage.
+ex: db.Person.aggregate([
+    {
+        $group: {
+            _id: {
+                name: "$name",
+                county: "$company.location.country",
+                eyeColor: "$eyeColor",
+            }
+        }
+    }
+]);
+
+ex: db.Person.aggregate([
+    {
+        $group: {
+            _id: {
+                iColor: "$eyeColor",
+                favFruit: "$favoriteFruit",
+            }
+        }
+    }
+]);
+
+** $match and $group stage **
+* First stage is match documents and group on that 
+
+ex. db.Person.aggregate([
+    {
+        $match: { gender: "female" },
+    },
+    {
+        $group: {
+            _id: {
+                eyeColor: "$eyeColor",
+                age: "$age",
+                gender: "$gender"
+            }
+        }
+    }
+]);
+
+* $group and $match Stage Reverse order *
+ex: db.Person.aggregate([
+        {
+            $group: {
+                _id: {
+                    eyeColor: "$eyeColor",
+                    age: "$age",
+                    gender: "$gender"
+                }
+            }
+        },
+        { $match: { gender:  "female"}}
+    ])
+* We aspecting gender field from input documents but it didn'table
+
+ex: db.Person.aggregate([
+        {
+            $group: {
+                _id: {
+                    iColor: "$eyeColor",
+                    age: "$age",
+                }
+            }
+        },
+        { $match: { "_id.iColor":  "blue"}}
+    ])
+
+
+** Count Stage **
+* Count number of input documents
+syntex: { $count: "<title>"}
+
+ex. { $count: "countries" }
+ex. { $count: "allDocumentsCount" }
+
+** Different count methods **
+* These two are client side method 
+-> db.Person.aggregate([]).toArray().length
+-> db.Person.aggregate([]).itCount();
+
+* These two are server side methods and take same time to execute
+-> db.Person.find().count();   | Find count() is wrapper of the aggregate $count
+-> db.Person.aggregate([{ $count: "Total"}])  | Recommneded to use
+
+ex: db.Person.aggregate([
+  {
+    $group: {
+      _id: {
+        age: "$age"
+      },
+  	},
+  },
+  { $count: 'ageCount'}
+])
+
+ex: db.Person.aggregate([
+  {
+    $group: {
+      _id: {
+        age: "$age",
+        eyeColor: "$eyeColor",
+      },
+  	},
+  },
+  { $count: 'ageAndEyeColorCount'}
+])
+
+ex: db.Person.aggregate([
+  {
+    $match: { isActive: true }
+  },
+  {
+    $group: {
+      _id: {
+        age: "$age",
+        eyeColor: "$eyeColor",
+        favFruit: "$favoriteFruit"
+      },
+  	},
+  },
+  { $count: 'TotalDocuments'}
+])
+
+
+*** Sort Stage ** 
+* Sort input documents based on certain fields.
+* Expresion order is important
+syntex: { $sort: {<field1>: <1|-1>, <field2>: <1|-1>, <field3>: <1|-1>, }}
+
+ex: { $sort: {score: 1}}
+ex: { $sort: {age: 1, county: -1}}
+--> 1 Acending order
+--> -1 Decending order
+
+ex: db.Person.aggregate([
+    {
+        $sort: {
+            name: 1,
+            age: 1,
+        }
+    }
+])
+
+ex: db.Person.aggregate([
+    {
+        $group: "$favoriteFruit"
+    },
+    {
+        $sort: { _id: -1 }
+    }
+])
+
+ex: db.Person.aggregate([
+    {
+        $match: { eyeColor: "green"}
+    },
+    {
+        $group: "$favoriteFruit"
+    },
+    {
+        $sort: { _id: -1 }
+    }
+])
+
+
+** Project Stage **
+* Project stage is used to Includes, Excludes or rename field in document
+* Project stage used for minimize document or rename of input document field .
+* Usually project stage comes after group or match stage
+* This approach is usually used when input documents contains lots of fileds and lots of nested documents ans so on... and output we need several field structured and readable formate.
+
+syntext: { $project: {<field1>: 1, <field2>: 0, ...<fieldN>, <newField1>: <Expresion>}}
+--> 1 : field present|include in document
+--> 0 : field absent|exclude in document
+
+* There is 3 fields in that _id that added but exists, name and company.location.country
+ex: { $project: { name: 1, "company.location.country": 1 }} 
+
+* In this example explicitly tells that _id and company excluded
+ex: { $project: { _id: 0, name: 1, age: 1, company: 0}}
+
+* All the fields that you mension below are 0 means these are excluded in document and other are includes.
+ex: { $project: { eyeColor: 0, age: 0, isActive: 0}}
+
+ex: { $project: { name: 1, newAge: "$age" }}
+
+ex: db.Person.aggregate([
+    {
+        $project: {
+            _id: 0,
+            isActive: 1,
+            name: 1,
+            gender: 1,
+            "company.location.county": 1,
+        }
+    }
+])
+
+* Rename fields *
+ex: db.Person.aggregate([
+    {
+        $project: {
+            _id: 0,
+            name: 1,
+            info: {
+                eyes: "$eyeColor",
+                fruit: "$favoriteFruit",
+                country: "company.location.county",
+            }
+        }
+    }
+])
+
+
+** Limit Stage **
+* Output first N number of documents
+syntex: { $limit: <Number> }
+
+* $limit is usually used in
+1. Sampled aggregation request with $limit as first stage
+2. After $sort to produce topN results.
+
+* It usually place at last stage of aggregation pipeline.
+
+ex: db.Person.aggregate([
+    {
+        $match: {
+            age: { $gte: 25, $lte: 30},
+        }
+    },
+    {
+        $group: {
+            _id: {
+                iColor: "$eyeColor",
+                favFruit: "$favoriteFruit",
+            }
+        }
+    },
+    {
+        $sort: { "_id.iColor": 1, "_id.favFruit": -1}
+    },
+    {
+        $limit: 10
+    }
+])
+
+
+** Array group problem ** 

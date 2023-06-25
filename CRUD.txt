@@ -88,8 +88,8 @@ $or, $and, $in, $nin, $gt, $gte, $lte, $lt, $eq, $neq, $regx
 sort(), limit(), skip()
 
 -> db.Posts.find({}).limit(10);  | return first 10 documents
--> db.Posts.find({}).sort({ comments: 1 }) | it will sort documents based on comments in assending order
-1 : Assending order
+-> db.Posts.find({}).sort({ comments: 1 }) | it will sort documents based on comments in ascending order
+1 : Ascending order
 -1 : Desending order
 -> db.Posts.find({}).skip(20) | it skip fist 20 documents and other returns
 
