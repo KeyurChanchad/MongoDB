@@ -1,0 +1,96 @@
+* MongoDB is document type database it store documents in collection.
+* Mongo shell is based on javascript so we can use javascript inside mongo shell.
+* Mongo server is connected to MongoDB by mongod process and mongo shell is tool to connect with server.
+
+-> mongod  | start mongo server in local windows
+-> mongo   | start mongo shell for execute mongo query
+-> mongod -version  | return server version
+-> db.version()     | return server version
+
+* MongoDB cloud is remote database we can connect by mongo cluster.
+
+-> show dbs  | show databases 
+
+-> use <DatabaseName>  | switch or use this database
+
+-> show collections    | show tables or collections
+
+* MongoDB collect documents in BJSON formate
+* JSON is look like javascript object surrounding by String "".
+* JSON is store data in Key, Value pair where Key must be String type.
+* JSON have 6 data type String, Number, Boolean, Array, Object, Null.
+
+-> JSON.stringify()  | From Object to JSON
+-> JSON.parse()      | From JSON to Object
+
+* Documents in database are stored in BJSON formate. BJSON means Binary JSON. It store value in hexadecimal formate.
+* Extended JSON is used to represent BJSON data type to user readalbe formate.
+* Extended JSON = JSON + BJSON
+
+
+** Mongo Shell Query **
+-> db.createCollection('Posts');    | it will create new collection or table named 'Posts'
+
+* Insert document *
+-> db.Posts.insertOne({"name": "Keyur Chanchad", "age": 21});   | add only one document
+
+* Insert documents *
+-> db.Posts.insertMany([
+    {"name": "vishal Thummar", "age": 21},
+    {"name": "Nilesh Dabhi", "age": 20}
+]);        |   add many documents
+
+
+* Find document *
+-> db.Posts.findOne({name: "Keyur Chanchad"});  | return only one document
+-> db.Posts.findOne({ postId: NumberInt(2031)});
+
+* Find documents *
+-> db.Posts.find({age: 21 });   | return array of many documents
+-> db.Posts.find({ comments: 0 });
+-> db.Posts.find({ 'author.name' : 'Emily wostaily' });  | author is nested object
+-> db.Posts.find({ tags: 'programing' })   | tags is array
+
+* Update document*
+-> db.Posts.updateOne({ postId: 2023 }, { $set: { shared: true }})  | update document whose postId is 2023 and set shared true
+-> db.Posts.updateMany({tags: []}, { $unset: { tags: 1 }}) | update documents whose tags is empty 
+-> db.Posts.UpdateOne({ postId: 2626}, {$inc: { comments: 3}}) | update post whose postId is 2626 and incremnet comments with 3
+
+* Update Operator *
+$set, $unset, $rename, $inc, $des, $currentDate, $addToSet
+
+* Delete document *
+-> db.Posts.deleteOne({ postId: 2626 })  | delete document whose postId is 2626
+-> db.Posts.deleteMany({ title: { $exists: false }})  | delete documents where title is not exists
+
+* Query Operator *
+$or, $and, $in, $nin, $gt, $gte, $lte, $lt, $eq, $neq, $regx
+
+-> db.Posts.find({age: {$gte: 21 }}); 
+-> db.Posts.find({ comments: { $lt: 6}})
+-> db.Posts.find({ 
+    $and: [
+        comments: { $gt: 0 },
+        comments: { $lte: 10 }
+    ]
+});
+-> db.Posts.find({
+    $or: [
+        { shared: true },
+        { tags: 'programing' } 
+    ]
+});
+-> db.Posts.find({ tags: { $in : ['programing', 'coding']}}); | return documents in which tags has either 'programing' or 'coding' value
+-> db.Posts.find({ tags : { $nin: ['designing'] }});  | return documents in which tags has no value 'designing'
+
+
+* Methods *
+sort(), limit(), skip()
+
+-> db.Posts.find({}).limit(10);  | return first 10 documents
+-> db.Posts.find({}).sort({ comments: 1 }) | it will sort documents based on comments in assending order
+1 : Assending order
+-1 : Desending order
+-> db.Posts.find({}).skip(20) | it skip fist 20 documents and other returns
+
+
