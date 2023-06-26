@@ -330,3 +330,152 @@ ex: db.Person.aggregate([
 
 
 ** Array group problem ** 
+* We can not group on array field
+ex: { $group: { _id: "$tags" }}  | it gives an array of tags
+
+** $unwind stage **
+* Solution of array group problem is $unwind stage.
+* $unwind stage help to perform aggregation operation on array field.
+* Splits each documents with specified array to several documents one document per array element.
+
+syntex: { $unwind : <arrayReferenceExample> }
+
+* Unwind stage take array as value 
+ex: { $unwind: "$tags" }
+ex: { $unwind: "$hobbies" }
+
+* $unwind and $project *
+ex: db.Person.aggregate([
+    { $unwind: "$tags" },
+    { $project: {
+        name: 1,
+        gender: 1,
+        tags: 1
+    }}
+])
+
+* $unwind and $group *
+ex:  db.Person.aggregate([
+    { $unwind: "$tags" },
+    { $group: { _id: "$tags" }}
+])
+
+
+** Accumulators **
+$sum, $avg, $min, $max, 
+* Most accumulators are used only in the $group stage.
+* Accumulators maintain stage for each group of the documents.
+
+syntex: { $<accumulatorOperator>: <Expresion>}
+
+ex: { $sum: "$quality" }
+ex: { $avg: "$age" }
+ex: { $max: "$spentMoney" }
+ex: { $min: "$salary" }
+
+* Sum accumulator *
+* Sums numeric values for the documents in each group.
+{ $sum: <expression| number>}
+
+ex: { total: { $sum: "$quantity" }}
+ex: { count: { $sum: 1 }}
+* Simple way to count number of documents in each group
+
+*  $group and $sum *
+{ 
+    $group: {
+        _id: "$age",
+        count: { $sum: 1 }
+    }
+}
+
+* $sum, $unwind and $group *
+db.Person.aggregate([
+    {
+        $unwind: "$tags",
+    },
+    {
+        $group: {
+            _id: "$tags",
+            count: { $sum: NumberInt(1) }
+        }
+    },
+])
+
+* $avg Accumulator *
+* Calculates average value of the certain fields in the documents for each group.
+syntex: { $avg: <Expresion> }
+ex: { avgAge: { $avg: "$avg"} } 
+
+
+* $avg and $group *
+{ 
+    $group: {
+        _id: "$company.location.country",
+        avgAge: { $avg: "$age" },  
+    }
+}
+
+
+** Unary Operators **
+$type, $or, $lt, $gt, $lte, $gte, $eq, $neq, $and, $in, $nin, $multiply
+
+* Unary operator is works on each of the document
+* Accumulator operator accumulate certain value on group stage.
+* Unary operator usually used in the $project and $match stage.
+* In the $group stage Unary operators can be used only in conjuction with accumulators.
+
+* Type Unary Operator *
+* Returns BJSON type of the field's value 
+syntex: { $type: <Expresion> }
+
+ex: { $type: "$age" }  | if age is number then return Number
+ex: { $type: "$name" } | if name is string then return String
+
+* $type and $project *
+db.Person.aggregate([
+    {
+        $project: {
+            name: 1,
+            eyeColorType: { $type: "$eyeColor" },
+            ageType: { $type: "$age" },
+            tagsType: { $type: "$tags" },
+            companyType: { $type: "$company" },
+        }
+    }
+])
+
+
+** Out Stage **
+* It allows you to write result of aggregation operation in new MongoDB collection.
+* It is used when you want to store or out many documents.
+
+syntex: { $out: <"OutputCollectionName"> }
+
+ex: { $out: "newCollection"}
+
+* $out must be last stage in the pipeline 
+* If outputs collection doesn't exists it will be created automatically.
+
+ex: db.Person.aggregate([
+    {
+        $group: {
+            _id: {
+                age: "$age",
+                eyeColor: "$eyeColor",
+            }
+        }
+    },
+    {
+        $out: "aggregationResults"
+    }
+])
+
+
+** allowDiskUse : true **
+* Each MongoDB stage processon mongodb server.
+* All aggregation stages can use maximum 100 MB of RAM.
+* Server will return error if RAM Limit excceded.
+* Following option will enable MongoDB to write stages data to the temporal fiels.
+
+ex: db.Person.aggregate([], { allowDiskUse: true })
