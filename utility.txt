@@ -1,0 +1,143 @@
+** Mongo Utility **
+=> Mongo utility is not a part of mongo shell. They are independent and separated. You can use from any terminal.
+
+* Utilities *
+=> mongoexport
+=> mongoimport
+=> mongodump
+=> mongorestore
+=> mongostat
+=> mongotop
+
+** mongoexport **
+=> Exports MongoDB collection data in JSON or CSV format
+=> Strict mode Extended JSON format is used.
+
+* From Local MongoDB server *
+syntex: mongoexport --db <database> --collection <collection> --out <filename>
+
+ex: mongoexport --db mydb --collection Person --out persons.json 
+where mydb is database name, Person is collection name and persons.json would be file name which store output data.
+
+ex: mongoexport --db inotebook --collection notes --out notes.json
+
+(Local jsonArray)
+syntex: mongoexport --db <database> --collection <collection> --out <filename> --jsonArray
+
+ex: mongoexport --db inotebook --collection notes --out noteJsonArray.json --jsonArray
+
+(Local CSV)
+syntex: mongoexport --db <database> --collection <collection> --out <filename> --type=csv
+
+ex: mongoexport --db inotebook --collection notes --out noteCSV.csv --fields id,title,description,tag,date
+
+(Local with Query)
+syntex: mongoexport --db <database> --collection <collection> --out <filename> --query'{<query>}'
+
+* From Remote MongoDB server *
+syntex: mongoexport --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> --db <database> --collection <collection> --out <filename> 
+
+ex: mongoexport --host ec2-34-216-244-19.us-west-2.compute.amazonaws.com --username admin --password password --authenticationDatabase admin --db mydb --collection Person --out persons.json 
+
+
+** mongoimport **
+=> With this command you can easyly import data.
+=> Imports MongoDB collection data in JSON and CSV format
+=> Strict mode or shell mode Extended JSON format is used
+=> If you try to insert document with duplicate unique index value or documents which is already exists mongodb gives error
+=> _id must be unique key
+=> If newCollection doesn't exists then automatically created.
+
+* Local MongoDB server *
+syntex: mongoimport --db <database> --collection <newCollection> --file <filename> 
+ex: mongoimport --db mydb --collection personsImport --file persons.json
+
+(Local jsonArray)
+syntex: mongoimport --db <database> --collection <newCollection> --file <filename> --jsonArray 
+
+(Local CSV)
+syntex: mongoimport --db <database> --collection <newCollection> --file <filename> --type=csv
+
+
+* Remote MongoDB server *
+syntex: mongoimport --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> --db <database> --collection <newCollection> --file <filename> 
+
+ex: mongoimport --host ec2-34-216-244-19.us-west-2.compute.amazonaws.com --username admin --password password --authenticationDatabase admin --db mydb --collection personsImport --out persons.json 
+
+** mongodump **
+=> This utility allows to export in binary format.
+=> Binary export of the MongoDB database
+=> Without --db option all database except 'local' will be dumped
+
+syntex: mongodump 
+
+(Local mongodb)
+=> All database dump
+ex: mongodump
+=> Specific database dump
+ex: mongodump --db mydb
+
+(Remote mongodb )
+=> specific collection of database in directoryName
+syntex: mongodump --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> --db <database> --collection <dumpCollection> --out <directoryName> 
+
+=> If amit this --out option dump folder will be created
+syntex: mongodump --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> --db <database> --collection <dumpCollection> 
+
+=> Also dump in compress zip
+syntex: mongodump --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> --db <database> --collection <dumpCollection> --archive=<fileName> --gzip 
+
+=> all database
+ex: mongodump --host ec2-34-216-244-19.us-west-2.compute.amazonaws.com --username admin --password password --authenticationDatabase admin 
+
+
+** mongorestore **
+=> This utility restore data from mongodb backup that is created by mongodump
+=> Binary import of the MongoDB backup
+=> Indexes will be re-created
+
+(Local mongodb)
+=> It will restore data from dump folder.
+=> Excute command where dump folder is there otherwise use --dir option to give path where dump folder located
+ex: mongorestore 
+
+(Remote mongodb)
+syntex: mongorestore --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> 
+
+ex: mongorestore --host ec2-34-216-244-19.us-west-2.compute.amazonaws.com --username admin --password password --authenticationDatabase admin
+
+(Remote from specific directory)
+syntex: mongorestore --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> --dir <directoryName>
+
+(Remote from Archive)
+syntex: mongorestore --host <hostname> --username <username> --password <password> --authenticationDatabase <authDB> --archive=<fileName> --gzip
+
+ex: mongorestore --host ec2-34-216-244-19.us-west-2.compute.amazonaws.com --username admin --password password --authenticationDatabase admin --archive=dump.gz --gzip
+
+
+** mongostat **
+=> Using this utility you can easyly monitor MongoDB perform in real-time
+=> mongodb real-time statistics
+
+(Local MongoDB)
+ex: mongostat
+
+(Remote MongoDB)
+ex: mongostat --host ec2-34-216-244-19.us-west-2.compute.amazonaws.com --username admin --password password --authenticationDatabase admin
+
+
+** mongotop **
+=> Top MongoDB current read and write operations
+
+syntex: mongotop <number> in seconds
+
+(Local MongoDB)
+ex: mongotop
+ex: mongotop 180
+
+(Remote MongoDB)
+ex: mongotop --host ec2-34-216-244-19.us-west-2.compute.amazonaws.com --username admin --password password --authenticationDatabase admin
+
+
+
+
